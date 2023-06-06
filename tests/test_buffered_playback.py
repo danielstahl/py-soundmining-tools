@@ -33,8 +33,8 @@ class TestBufferedPlayback(unittest.TestCase):
         now = time.time()
         future_bundle_time = now - 1.0
         bundle = TestBufferedPlayback.__make_simple_bundle(future_bundle_time)
-        bundle_time = bundle.timestamp
+        bundle_timestamp = bundle.timestamp
         bundle_queue = buffered_playback.PlaybackBundleQueue()
         bundle_queue.add_bundle(bundle)
         due_bundles = bundle_queue.get_due_bundles(now)
-        self.assertAlmostEqual(due_bundles[0].timestamp, bundle_time)
+        self.assertAlmostEqual(due_bundles[0].timestamp, bundle_timestamp)
