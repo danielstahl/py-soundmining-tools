@@ -60,6 +60,13 @@ def new_synth(instrument_name: str,
     return make_message("/s_new", message_args)
 
 
+def new_synths(graph: list[list[any]]) -> list[osc_message.OscMessage]:
+    osc_messages = []
+    for message in graph:
+        osc_messages.append(make_message("/s_new", message))
+    return osc_messages
+
+
 def group_head(group_id: int, node_id: int) -> osc_message.OscMessage:
     return make_message("/g_new", [node_id, 0, group_id])
 

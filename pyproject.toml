@@ -1,0 +1,12 @@
+[project]
+name = "soundmining-tools"
+version = "0.0.1"
+authors = [
+    { name = "Daniel Ståhl" }
+]
+description = "Python implementation of soundmining tools"
+
+[tool.setuptools]
+packages = [
+    "soundmining_tools"
+]

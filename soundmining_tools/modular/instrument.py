@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Self
 from soundmining_tools import bus_allocator
 from abc import ABC, abstractmethod
+from soundmining_tools import supercollider_client
 
 
 class AddAction(Enum):
@@ -17,6 +18,19 @@ class NodeId(Enum):
     SOURCE = 1004
     EFFECT = 1005
     ROOM_EFFECT = 1006
+
+
+def setup_nodes(client: supercollider_client.SupercolliderClient) -> None:
+    client.send_message(supercollider_client.group_head(0, NodeId.SOURCE.value))
+    client.send_message(supercollider_client.group_tail(NodeId.SOURCE.value, NodeId.EFFECT.value))
+    client.send_message(supercollider_client.group_tail(NodeId.EFFECT.value, NodeId.ROOM_EFFECT.value))
+
+
+DEFAULT_SYNTH_DIR = "/Users/danielstahl/Documents/Projects/soundmining-modular/src/main/sc/synths"
+
+
+def load_synth_dir(client: supercollider_client.SupercolliderClient, synth_dir: str = DEFAULT_SYNTH_DIR) -> None:
+    client.send_message(supercollider_client.load_dir(synth_dir))
 
 
 class Bus:
