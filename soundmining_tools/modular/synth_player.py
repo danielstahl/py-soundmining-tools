@@ -4,20 +4,43 @@ from soundmining_tools.supercollider_client import SupercolliderClient
 from soundmining_tools.modular.instrument import AudioInstrument, ControlInstrument, AddAction
 from soundmining_tools.modular.audio_instruments import AudioInstruments
 from soundmining_tools.modular.control_instruments import ControlInstruments
-
+from soundmining_tools.modular.sound_play import SoundPlay
+from soundmining_tools.modular.sound_play import BufNumAllocator
 from typing import Self
 
 
 class SynthPlayer:
-    def __init__(self, client: SupercolliderClient, 
-                 audio_instruments: AudioInstruments, 
-                 control_instruments: ControlInstruments) -> None:
+    def __init__(self, client: SupercolliderClient,
+                 audio_instruments: AudioInstruments,
+                 control_instruments: ControlInstruments,
+                 buf_num_allocator: BufNumAllocator) -> None:
         self.client = client
         self.audio_instruments = audio_instruments
         self.control_instruments = control_instruments
+        self.buf_num_allocator = buf_num_allocator
+        self.sound_plays = {}
 
     def note(self) -> 'SynthNote':
         return SynthNote(self)
+
+    def add_sound(self, name: str, sound_path: str, start: float, end: float) -> Self:
+        self.sound_plays[name] = SoundPlay(sound_path, start, end)
+        return self
+
+    def get_sound(self, name) -> SoundPlay:
+        return self.sound_plays[name]
+
+    def start(self) -> Self:
+        self.buf_num_allocator.reset()
+        for sound_play in self.sound_plays.values():
+            sound_play.init(self.buf_num_allocator.next(), self.client)
+        return self
+
+    def stop(self) -> Self:
+        for sound_play in self.sound_plays.values():
+            sound_play.stop(self.client)
+        self.buf_num_allocator.reset()
+        return self
 
 
 class AudioStack:
@@ -39,6 +62,16 @@ class SynthNote:
         self.synth_player = synth_player
         self.audio_stack = AudioStack()
 
+    def sound_mono(self, sound: str, rate: float, amp: ControlInstrument) -> Self:
+        synth_player = self.synth_player
+        sound_play = synth_player.get_sound(sound)
+        mono_play_buffer = synth_player.audio_instruments \
+            .mono_play_buffer(sound_play.buf_num, rate, sound_play.start, sound_play.end, amp) \
+            .add_action(AddAction.TAIL_ACTION)
+        duration = sound_play.duration(rate)
+        self.audio_stack.push(mono_play_buffer, duration)
+        return self
+
     def sine(self, freq: ControlInstrument, amp: ControlInstrument) -> Self:
         sine = self.synth_player.audio_instruments.sine_osc(amp, freq).add_action(AddAction.TAIL_ACTION)
         self.audio_stack.push(sine)
@@ -51,11 +84,13 @@ class SynthNote:
         self.audio_stack.push(panning)
         return self
 
-    def play(self, start_time: float, duration: float, output_bus: int = 0) -> None:
+    def play(self, start_time: float, duration: float = None, output_bus: int = 0) -> None:
+        final_duration = duration or self.audio_stack.duration
+
         client = self.synth_player.client
         audio_graph = self.audio_stack.pop() \
             .static_output_bus(output_bus) \
-            .build_graph(start_time, duration)
+            .build_graph(start_time, final_duration)
         osc_messages = supercollider_client.new_synths(audio_graph)
         bundle = client.make_bundle(start_time, osc_messages)
         client.schedule_bundle(bundle)

@@ -1,12 +1,10 @@
 
 from dataclasses import dataclass, field
 from pythonosc import osc_bundle
-from pythonosc import osc_message
 from queue import PriorityQueue
 import time
 import logging
 import concurrent.futures
-from soundmining_tools import supercollider_client
 from pythonosc import udp_client
 
 BUFFER_TIME = 3.0

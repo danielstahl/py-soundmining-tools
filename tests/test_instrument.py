@@ -35,6 +35,16 @@ class TestInstrument(unittest.TestCase):
         ]
         self.assertEqual(result, expected)
 
+    def test_block_control(self) -> None:
+        control_instruments = ControlInstruments(control_bus_allocator)
+        control_bus_allocator.reset_allocations()
+        result = control_instruments.two_block_control((0, 1, 0), (1, 1), (0, 0)) \
+            .build_graph(0, 3)
+        expected = [
+            ["twoBlockControl", -1, 0, 1004, "out", 0, "dur", 3, "levels", [0, 1, 0], "times", [1, 1], "curves", [0, 0]]
+        ]
+        self.assertEqual(result, expected)
+
     def test_audio_with_control(self) -> None:
         control_instruments = ControlInstruments(control_bus_allocator)
 
