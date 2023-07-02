@@ -1,3 +1,5 @@
 # main requirements
 python-osc
 ipycanvas
+matplotlib
+jupyterlab

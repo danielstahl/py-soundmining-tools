@@ -6,7 +6,7 @@ from pythonosc import osc_bundle_builder
 from soundmining_tools import buffered_playback
 import time
 import logging
-from typing import Protocol
+
 
 PLAYBACK_DELAY = 2.0
 

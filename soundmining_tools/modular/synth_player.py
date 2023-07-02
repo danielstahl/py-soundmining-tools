@@ -77,6 +77,62 @@ class SynthNote:
         self.audio_stack.push(sine)
         return self
 
+    def triangle(self, freq: ControlInstrument, amp: ControlInstrument) -> Self:
+        triangle = self.synth_player.audio_instruments.triangle_osc(amp, freq).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(triangle)
+        return self
+
+    def pulse(self, freq: ControlInstrument, amp: ControlInstrument) -> Self:
+        pulse = self.synth_player.audio_instruments.pulse_osc(amp, freq).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(pulse)
+        return self
+
+    def saw(self, freq: ControlInstrument, amp: ControlInstrument) -> Self:
+        saw = self.synth_player.audio_instruments.saw_osc(amp, freq).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(saw)
+        return self
+
+    def dust(self, freq: ControlInstrument, amp: ControlInstrument) -> Self:
+        dust = self.synth_player.audio_instruments.dust_osc(amp, freq).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(dust)
+        return self
+
+    def white_noise(self, amp: ControlInstrument) -> Self:
+        noise = self.synth_player.audio_instruments.white_noise_osc(amp).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(noise)
+        return self
+
+    def pink_noise(self, amp: ControlInstrument) -> Self:
+        noise = self.synth_player.audio_instruments.pink_noise_osc(amp).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(noise)
+        return self
+
+    def bank_of_osc(self, freqs: list[float], amps: list[float], phases: list[float]) -> Self:
+        bank = self.synth_player.audio_instruments.bank_of_osc(freqs, amps, phases).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(bank)
+        return self
+
+    def bank_of_resonators(self, in_bus: AudioInstrument,
+                           freqs: list[float],
+                           amps: list[float],
+                           ring_times: list[float]) -> Self:
+        bank = self.synth_player.audio_instruments.bank_of_resonators(in_bus, freqs, amps, ring_times) \
+            .add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(bank)
+        return self
+
+    def mono_volume(self, amp: ControlInstrument) -> Self:
+        in_bus = self.audio_stack.pop()
+        volume = self.synth_player.audio_instruments.mono_volume(in_bus, amp).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(volume)
+        return self
+
+    def stereo_volume(self, amp: ControlInstrument) -> Self:
+        in_bus = self.audio_stack.pop()
+        volume = self.synth_player.audio_instruments.stereo_volume(in_bus, amp).add_action(AddAction.TAIL_ACTION)
+        self.audio_stack.push(volume)
+        return self
+
     def pan(self, pan_position: ControlInstrument) -> Self:
         in_audio = self.audio_stack.pop()
         panning = self.synth_player.audio_instruments.panning(in_audio, pan_position) \
