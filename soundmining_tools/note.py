@@ -38,5 +38,17 @@ def note_to_hertz(note: str) -> float:
     return cents_to_hertz(absolut_cents)
 
 
-def cents_to_hertz(absolut_cents: float) -> float:
-    return round(REF_FREQ * math.pow(2, absolut_cents / 1200.0), 2)
+def cents_to_hertz(absolut_cents: float, round_result: bool = True) -> float:
+    result = REF_FREQ * math.pow(2, absolut_cents / 1200.0)
+    return round(result) if round_result else result
+
+
+def hertz_to_cents(hertz: float) -> float:
+    return 1200.0 * math.log(hertz / REF_FREQ) / LOG_TWO
+
+
+A_PITCH = 440.0
+
+
+def midi_to_hertz(midi_note: int) -> float:
+    return (A_PITCH / 32) * pow(2, (midi_note - 9) / 12.00)

@@ -5,6 +5,9 @@ authors = [
     { name = "Daniel Ståhl" }
 ]
 description = "Python implementation of soundmining tools"
+dependencies = [
+    "python-osc"
+]
 
 [tool.setuptools]
 packages = [

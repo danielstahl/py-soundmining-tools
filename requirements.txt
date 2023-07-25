@@ -3,3 +3,4 @@ python-osc
 ipycanvas
 matplotlib
 jupyterlab
+ipywidgets

@@ -48,6 +48,9 @@ class Bus:
         self.bus_value = bus_value
         return self.bus_value
 
+    def get_bus_value(self) -> int:
+        return self.bus_value
+
 
 class Instrument(ABC):
     def __init__(self, instrument_name: str, nr_of_channels: int,
@@ -111,6 +114,9 @@ class Instrument(ABC):
     def static_output_bus(self, value: int) -> Self:
         self.output_bus.static_bus(value)
         return self
+
+    def get_output_bus(self) -> int:
+        return self.output_bus.get_bus_value()
 
     def build(self, start_time: float, duration: float) -> list[any]:
         if not self.instrument_is_built:

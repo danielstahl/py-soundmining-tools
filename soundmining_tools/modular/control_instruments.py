@@ -1,8 +1,10 @@
+
 from soundmining_tools import bus_allocator
 from soundmining_tools.modular.instrument import Instrument, ControlInstrument
 from soundmining_tools.bus_allocator import BusAllocator
 from typing import Self
-from typing import TypeVar, Generic
+from typing import TypeVar
+
 
 class StaticControl(ControlInstrument):
     def __init__(self, control_bus_allocator: BusAllocator) -> None:
@@ -20,9 +22,9 @@ class StaticControl(ControlInstrument):
         return ["value", self.value]
 
 
-class LineControl(ControlInstrument):
-    def __init__(self,  output_bus_allocator: BusAllocator) -> None:
-        super().__init__("lineControl", output_bus_allocator)
+class AbstractLineControl(ControlInstrument):
+    def __init__(self, instrument_name: str, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, output_bus_allocator)
 
     def control(self, start_value: float, end_value: float) -> Self:
         self.start_value = start_value
@@ -36,6 +38,16 @@ class LineControl(ControlInstrument):
         return [
             "startValue", self.start_value,
             "endValue", self.end_value]
+
+
+class LineControl(AbstractLineControl):
+    def __init__(self,  output_bus_allocator: BusAllocator) -> None:
+        super().__init__("lineControl", output_bus_allocator)
+
+
+class XLineControl(AbstractLineControl):
+    def __init__(self,  output_bus_allocator: BusAllocator) -> None:
+        super().__init__("xlineControl", output_bus_allocator)
 
 
 class SineControl(ControlInstrument):
@@ -120,6 +132,9 @@ class ControlInstruments:
 
     def line_control(self, start_value: float, end_value: float) -> LineControl:
         return LineControl(self.control_bus_allocator).control(start_value, end_value)
+
+    def xline_control(self, start_value: float, end_value: float) -> XLineControl:
+        return XLineControl(self.control_bus_allocator).control(start_value, end_value)
 
     def sine_control(self, start_value: float, peak_value: float) -> SineControl:
         return SineControl(self.control_bus_allocator).control(start_value, peak_value)

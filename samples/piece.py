@@ -4,6 +4,7 @@ from soundmining_tools.modular import audio_instruments, control_instruments
 from soundmining_tools.modular import synth_player
 from soundmining_tools.modular import instrument
 from soundmining_tools.modular.sound_play import BufNumAllocator
+from soundmining_tools.supercollider_receiver import SuperColliderReceiver
 
 
 class Piece:
@@ -21,10 +22,14 @@ class Piece:
                                                      self.buf_num_allocator)
         instrument.setup_nodes(self.supercollider_client)
         instrument.load_synth_dir(self.supercollider_client)
+        receiver = SuperColliderReceiver()
+        receiver.start()
+        self.receiver = receiver
 
     def stop(self) -> None:
         self.supercollider_client.stop()
         self.synth_player.stop()
+        self.receiver.stop()
 
     def reset(self) -> None:
         self.control_bus_allocator.reset_allocations()

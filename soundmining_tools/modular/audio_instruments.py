@@ -1,3 +1,4 @@
+from soundmining_tools import bus_allocator
 from soundmining_tools.modular.instrument import Instrument, ControlInstrument, AudioInstrument
 from soundmining_tools.bus_allocator import BusAllocator
 from typing import Self
@@ -156,6 +157,145 @@ class StereoPlayBuffer(PlayBuffer):
         super().__init__("stereoPlayBuffer", 2, output_bus_allocator)
 
 
+class HighPassFilter(AudioInstrument):
+    def __init__(self, instrument_name: str, nr_of_channels: int, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, nr_of_channels, output_bus_allocator)
+
+    def filter(self, in_bus: AudioInstrument, freq_bus: ControlInstrument) -> Self:
+        self.in_bus = in_bus
+        self.freq_bus = freq_bus
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.in_bus.graph(self.freq_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "freqBus", self.freq_bus.dynamic_output_bus(start_time, duration)
+        ]
+
+
+class MonoHighPassFilter(HighPassFilter):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("monoHighPassFilter", 1, output_bus_allocator)
+
+
+class StereoHighPassFilter(HighPassFilter):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoHighPassFilter", 2, output_bus_allocator)
+
+
+class LowPassFilter(AudioInstrument):
+    def __init__(self, instrument_name: str, nr_of_channels: int, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, nr_of_channels, output_bus_allocator)
+
+    def filter(self, in_bus: AudioInstrument, freq_bus: ControlInstrument) -> Self:
+        self.in_bus = in_bus
+        self.freq_bus = freq_bus
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.in_bus.graph(self.freq_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "freqBus", self.freq_bus.dynamic_output_bus(start_time, duration)
+        ]
+
+
+class MonoLowPassFilter(HighPassFilter):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("monoLowPassFilter", 1, output_bus_allocator)
+
+
+class StereoLowPassFilter(HighPassFilter):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoLowPassFilter", 2, output_bus_allocator)
+
+
+class BandPassFilter(AudioInstrument):
+    def __init__(self, instrument_name: str, nr_of_channels: int, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, nr_of_channels, output_bus_allocator)
+
+    def filter(self, in_bus: AudioInstrument, freq_bus: ControlInstrument, rq_bus: ControlInstrument) -> Self:
+        self.in_bus = in_bus
+        self.freq_bus = freq_bus
+        self.rq_bus = rq_bus
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.in_bus.graph(self.freq_bus.graph(self.rq_bus.graph(parent))))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "freqBus", self.freq_bus.dynamic_output_bus(start_time, duration),
+            "rqBus", self.rq_bus.dynamic_output_bus(start_time, duration),
+        ]
+
+
+class MonoBandPassFilter(HighPassFilter):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("monoBandPassFilter", 1, output_bus_allocator)
+
+
+class StereoBandPassFilter(HighPassFilter):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoBandPassFilter", 2, output_bus_allocator)
+
+
+class BandRejectFilter(AudioInstrument):
+    def __init__(self, instrument_name: str, nr_of_channels: int, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, nr_of_channels, output_bus_allocator)
+
+    def filter(self, in_bus: AudioInstrument, freq_bus: ControlInstrument, rq_bus: ControlInstrument) -> Self:
+        self.in_bus = in_bus
+        self.freq_bus = freq_bus
+        self.rq_bus = rq_bus
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.in_bus.graph(self.freq_bus.graph(self.rq_bus.graph(parent))))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "freqBus", self.freq_bus.dynamic_output_bus(start_time, duration),
+            "rqBus", self.rq_bus.dynamic_output_bus(start_time, duration),
+        ]
+
+
+class MonoBandRejectFilter(HighPassFilter):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("monoBandRejectFilter", 1, output_bus_allocator)
+
+
+class StereoBandRejectFilter(HighPassFilter):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoBandRejectFilter", 2, output_bus_allocator)
+
+
+class RingModulate(AudioInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("lowPassFilter", 1, output_bus_allocator)
+
+    def modulate(self, carrier_bus: AudioInstrument, modulator_freq_bus: ControlInstrument) -> Self:
+        self.carrier_bus = carrier_bus
+        self.modulator_freq_bus = modulator_freq_bus
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.carrier_bus.graph(self.modulator_freq_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "carrierBus", self.carrier_bus.dynamic_output_bus(start_time, duration),
+            "modulatorFreqBus", self.modulator_freq_bus.dynamic_output_bus(start_time, duration)
+        ]
+
+
 class Volume(AudioInstrument):
     def __init__(self, instrument_name: str, nr_of_channels: int, output_bus_allocator: BusAllocator) -> None:
         super().__init__(instrument_name, nr_of_channels, output_bus_allocator)
@@ -185,6 +325,134 @@ class StereoVolume(Volume):
         super().__init__("stereoVolume", 2, output_bus_allocator)
 
 
+class Comb(AudioInstrument):
+    def __init__(self, instrument_name: str, nr_of_channels: int, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, nr_of_channels, output_bus_allocator)
+
+    def comb(self, in_bus: AudioInstrument, amp_bus: ControlInstrument, delay_time: float, decay_time: float) -> Self:
+        self.in_bus = in_bus
+        self.amp_bus = amp_bus
+        self.delay_time = delay_time
+        self.decay_time = decay_time
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.amp_bus.graph(self.in_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "ampBus", self.amp_bus.dynamic_output_bus(start_time, duration),
+            "delaytime", self.delay_time,
+            "decaytime", self.decay_time]
+
+
+class MonoComb(Comb):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("monoComb", 1, output_bus_allocator)
+
+
+class StereoComb(Comb):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoComb", 2, output_bus_allocator)
+
+
+class Delay(AudioInstrument):
+    def __init__(self, instrument_name: str, nr_of_channels: int, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, nr_of_channels, output_bus_allocator)
+
+    def delay(self, in_bus: AudioInstrument, amp_bus: ControlInstrument, delay_time: float) -> Self:
+        self.in_bus = in_bus
+        self.amp_bus = amp_bus
+        self.delay_time = delay_time
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.amp_bus.graph(self.in_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "ampBus", self.amp_bus.dynamic_output_bus(start_time, duration),
+            "delaytime", self.delay_time]
+
+
+class MonoDelay(Delay):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("monoDelay", 1, output_bus_allocator)
+
+
+class StereoDelay(Delay):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoDelay", 2, output_bus_allocator)
+
+
+class StereoHallReverb(AudioInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoHallReverb", 2, output_bus_allocator)
+
+    def reverb(self, in_bus: AudioInstrument, amp_bus: ControlInstrument, rt60: float, stereo: float, low_freq: float,
+               low_ratio: float, hi_freq: float, hi_ratio: float, early_diffusion: float, late_diffusion: float,
+               mod_rate: float, mod_depth: float) -> Self:
+        self.in_bus = in_bus
+        self.amp_bus = amp_bus
+        self.rt60 = rt60
+        self.stereo = stereo
+        self.low_freq = low_freq
+        self.low_ratio = low_ratio
+        self.hi_freq = hi_freq
+        self.hi_ratio = hi_ratio
+        self.early_diffusion = early_diffusion
+        self.late_diffusion = late_diffusion
+        self.mod_rate = mod_rate
+        self.mod_depth = mod_depth
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.amp_bus.graph(self.in_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "ampBus", self.amp_bus.dynamic_output_bus(start_time, duration),
+            "rt60", self.rt60,
+            "stereo", self.stereo,
+            "lowFreq", self.low_freq,
+            "lowRatio", self.low_ratio,
+            "hiFreq", self.hi_freq,
+            "hiRatio", self.hi_ratio,
+            "earlyDiffusion", self.early_diffusion,
+            "lateDiffusion", self.late_diffusion,
+            "modRate", self.mod_rate,
+            "modDepth", self.mod_depth
+        ]
+
+
+class StereoFreeReverb(AudioInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoFreeReverb", 2, output_bus_allocator)
+
+    def reverb(self, in_bus: AudioInstrument, amp_bus: ControlInstrument, mix: float, room: float, damp: float) -> Self:
+        self.in_bus = in_bus
+        self.amp_bus = amp_bus
+        self.mix = mix
+        self.room = room
+        self.damp = damp
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.amp_bus.graph(self.in_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "ampBus", self.amp_bus.dynamic_output_bus(start_time, duration),
+            "mix", self.mix,
+            "room", self.room,
+            "damp", self.damp
+        ]
+
+
 class Panning(AudioInstrument):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("pan", 2, output_bus_allocator)
@@ -197,10 +465,35 @@ class Panning(AudioInstrument):
     def graph(self, parent: list[Instrument]) -> list[Instrument]:
         return self.append_to_graph(self.in_bus.graph(self.pan_bus.graph(parent)))
 
-    def internal_build(self, start_time: float, duration: float) -> list:
+    def internal_build(self, start_time: float, duration: float) -> list[any]:
         return [
             "in", self.in_bus.dynamic_output_bus(start_time, duration),
             "panBus", self.pan_bus.dynamic_output_bus(start_time, duration)]
+
+
+class StaticAudioBusInstrument(AudioInstrument):
+    def __init__(self, nr_of_channels: int, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("NONE", nr_of_channels, output_bus_allocator)
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return parent
+
+    def internal_build(self, start_time: float, duration: float) -> list[any]:
+        return []
+
+    def build(self, start_time: float, duration: float) -> list[any]:
+        self.instrument_is_built = True
+        return []
+
+
+class StaticMonoAudioBusInstrument(StaticAudioBusInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(1, output_bus_allocator)
+
+
+class StaticStereoAudioBusInstrument(StaticAudioBusInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(2, output_bus_allocator)
 
 
 class AudioInstruments:
@@ -223,10 +516,10 @@ class AudioInstruments:
         return DustOsc(self.audio_bus_allocator).osc(amp_bus, freq_bus)
 
     def white_noise_osc(self, amp_bus: ControlInstrument) -> WhiteNoiseOsc:
-        return WhiteNoiseOsc(self.audio_bus_allocator).osc(amp_bus)
+        return WhiteNoiseOsc(self.audio_bus_allocator).noise(amp_bus)
 
     def pink_noise_osc(self, amp_bus: ControlInstrument) -> PinkNoiseOsc:
-        return PinkNoiseOsc(self.audio_bus_allocator).osc(amp_bus)
+        return PinkNoiseOsc(self.audio_bus_allocator).noise(amp_bus)
 
     def bank_of_osc(self, freqs: list[float], amps: list[float], phases: list[float]) -> BankOfOsc:
         return BankOfOsc(self.audio_bus_allocator).bank_of_osc(freqs, amps, phases)
@@ -245,11 +538,73 @@ class AudioInstruments:
                            start: float, end: float, amp_bus: ControlInstrument) -> StereoPlayBuffer:
         return StereoPlayBuffer(self.audio_bus_allocator).play_buffer(buf_num, rate, start, end, amp_bus)
 
+    def mono_high_pass_filter(self, in_bus: AudioInstrument, freq_bus: ControlInstrument) -> MonoHighPassFilter:
+        return MonoHighPassFilter(self.audio_bus_allocator).filter(in_bus, freq_bus)
+
+    def stereo_high_pass_filter(self, in_bus: AudioInstrument, freq_bus: ControlInstrument) -> StereoHighPassFilter:
+        return StereoHighPassFilter(self.audio_bus_allocator).filter(in_bus, freq_bus)
+
+    def mono_low_pass_filter(self, in_bus: AudioInstrument, freq_bus: ControlInstrument) -> MonoLowPassFilter:
+        return MonoLowPassFilter(self.audio_bus_allocator).filter(in_bus, freq_bus)
+
+    def stereo_low_pass_filter(self, in_bus: AudioInstrument, freq_bus: ControlInstrument) -> StereoLowPassFilter:
+        return StereoLowPassFilter(self.audio_bus_allocator).filter(in_bus, freq_bus)
+
+    def mono_band_pass_filter(self, in_bus: AudioInstrument,
+                              freq_bus: ControlInstrument, rq_bus: ControlInstrument) -> MonoBandPassFilter:
+        return MonoBandPassFilter(self.audio_bus_allocator).filter(in_bus, freq_bus, rq_bus)
+
+    def stereo_band_pass_filter(self, in_bus: AudioInstrument,
+                                freq_bus: ControlInstrument, rq_bus: ControlInstrument) -> StereoBandPassFilter:
+        return StereoBandPassFilter(self.audio_bus_allocator).filter(in_bus, freq_bus, rq_bus)
+
+    def mono_band_reject_filter(self, in_bus: AudioInstrument,
+                                freq_bus: ControlInstrument, rq_bus: ControlInstrument) -> MonoBandRejectFilter:
+        return MonoBandRejectFilter(self.audio_bus_allocator).filter(in_bus, freq_bus, rq_bus)
+
+    def stereo_band_reject_filter(self, in_bus: AudioInstrument,
+                                  freq_bus: ControlInstrument, rq_bus: ControlInstrument) -> StereoBandRejectFilter:
+        return StereoBandRejectFilter(self.audio_bus_allocator).filter(in_bus, freq_bus, rq_bus)
+
+    def ring_modulate(self, carrier_bus: AudioInstrument, modulator_freq_bus: ControlInstrument) -> RingModulate:
+        return RingModulate(self.audio_bus_allocator).modulate(carrier_bus, modulator_freq_bus)
+
     def mono_volume(self, in_bus: AudioInstrument, amp_bus: ControlInstrument) -> MonoVolume:
         return MonoVolume(self.audio_bus_allocator).volume(in_bus, amp_bus)
 
     def stereo_volume(self, in_bus: AudioInstrument, amp_bus: ControlInstrument) -> StereoVolume:
         return StereoVolume(self.audio_bus_allocator).volume(in_bus, amp_bus)
 
+    def stereo_hall_reverb(self, in_bus: AudioInstrument, amp_bus: ControlInstrument, rt60: float, stereo: float,
+                           low_freq: float, low_ratio: float, hi_freq: float, hi_ratio: float, early_diffusion: float,
+                           late_diffusion: float, mod_rate: float, mod_depth: float) -> StereoHallReverb:
+        return StereoHallReverb(self.audio_bus_allocator).reverb(in_bus, amp_bus, rt60, stereo, low_freq, low_ratio,
+                                                                 hi_freq, hi_ratio, early_diffusion, late_diffusion,
+                                                                 mod_rate, mod_depth)
+
+    def stereo_free_reverb(self, in_bus: AudioInstrument, amp_bus: ControlInstrument,
+                           mix: float, room: float, damp: float) -> StereoFreeReverb:
+        return StereoFreeReverb(self.audio_bus_allocator).reverb(in_bus, amp_bus, mix, room, damp)
+
+    def mono_comb(self, in_bus: AudioInstrument,
+                  amp_bus: ControlInstrument, delay_time: float, decay_time: float) -> MonoComb:
+        return MonoComb(self.audio_bus_allocator).comb(in_bus, amp_bus, delay_time, decay_time)
+
+    def stereo_comb(self, in_bus: AudioInstrument,
+                    amp_bus: ControlInstrument, delay_time: float, decay_time: float) -> StereoComb:
+        return StereoComb(self.audio_bus_allocator).comb(in_bus, amp_bus, delay_time, decay_time)
+
+    def mono_delay(self, in_bus: AudioInstrument, amp_bus: ControlInstrument, delay_time: float) -> MonoDelay:
+        return MonoDelay(self.audio_bus_allocator).delay(in_bus, amp_bus, delay_time)
+
+    def stereo_delay(self, in_bus: AudioInstrument, amp_bus: ControlInstrument, delay_time: float) -> StereoDelay:
+        return StereoDelay(self.audio_bus_allocator).delay(in_bus, amp_bus, delay_time)
+
     def panning(self, in_bus: AudioInstrument, pan_bus: ControlInstrument) -> Panning:
         return Panning(self.audio_bus_allocator).pan(in_bus, pan_bus)
+
+    def mono_audio_bus(self) -> StaticMonoAudioBusInstrument:
+        return StaticMonoAudioBusInstrument(self.audio_bus_allocator)
+
+    def stereo_audio_bus(self) -> StaticStereoAudioBusInstrument:
+        return StaticStereoAudioBusInstrument(self.audio_bus_allocator)
