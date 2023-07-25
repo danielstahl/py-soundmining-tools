@@ -3,7 +3,7 @@ import re
 
 REF_FREQ: float = 16.3516
 LOG_TWO: float = math.log(2)
-NOTE_PATTERN = "([ABCDEFGHabcdefgh]){1}(iss|ess)?(\d){1}"
+NOTE_PATTERN = "([ABCDEFGHabcdefgh]){1}(iss|ess)?(\\d){1}"
 
 NATRUAL_NOTE_CENTS = {
     'c': 0,
@@ -35,7 +35,7 @@ def note_to_hertz(note: str) -> float:
     octave_cents = int(octave) * OCTAVE_CENTS
 
     absolut_cents = octave_cents + natrual_cents + modifier_cents
-    return cents_to_hertz(absolut_cents)
+    return cents_to_hertz(absolut_cents, round_result=False)
 
 
 def cents_to_hertz(absolut_cents: float, round_result: bool = True) -> float:
