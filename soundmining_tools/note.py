@@ -38,7 +38,7 @@ def note_to_hertz(note: str) -> float:
     return cents_to_hertz(absolut_cents, round_result=False)
 
 
-def cents_to_hertz(absolut_cents: float, round_result: bool = True) -> float:
+def cents_to_hertz(absolut_cents: float, round_result: bool = False) -> float:
     result = REF_FREQ * math.pow(2, absolut_cents / 1200.0)
     return round(result) if round_result else result
 
