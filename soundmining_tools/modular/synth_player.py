@@ -6,6 +6,8 @@ from soundmining_tools.modular.audio_instruments import AudioInstruments
 from soundmining_tools.modular.control_instruments import ControlInstruments
 from soundmining_tools.modular.sound_play import SoundPlay
 from soundmining_tools.modular.sound_play import BufNumAllocator
+from soundmining_tools.supercollider_score import SupercolliderScore
+from pythonosc.osc_message import OscMessage
 from typing import Self
 
 
@@ -14,13 +16,16 @@ class SynthPlayer:
                  audio_instruments: AudioInstruments,
                  control_instruments: ControlInstruments,
                  buf_num_allocator: BufNumAllocator,
-                 buffered_playback: bool = False) -> None:
+                 buffered_playback: bool = False,
+                 should_send_to_score: bool = False) -> None:
         self.client = client
         self.audio_instruments = audio_instruments
         self.control_instruments = control_instruments
         self.buf_num_allocator = buf_num_allocator
         self.buffered_playback = buffered_playback
         self.sound_plays = {}
+        self.supercollider_score = SupercolliderScore()
+        self.should_send_to_score = should_send_to_score
 
     def note(self, node_id: NodeId = NodeId.SOURCE) -> 'SynthNote':
         return SynthNote(self, node_id)
@@ -36,12 +41,14 @@ class SynthPlayer:
         self.buf_num_allocator.reset()
         for sound_play in self.sound_plays.values():
             sound_play.init(self.buf_num_allocator.next(), self.client)
+        self.supercollider_score.reset()
         return self
 
     def stop(self) -> Self:
         for sound_play in self.sound_plays.values():
             sound_play.stop(self.client)
         self.buf_num_allocator.reset()
+        self.supercollider_score.reset()
         return self
 
 
@@ -308,30 +315,35 @@ class SynthNote:
         self.audio_stack.push(panning)
         return self
 
+    def handle_osc_messages(self, start_time: float, osc_messages: list[OscMessage]) -> None:
+        if self.synth_player.should_send_to_score:
+            for message in osc_messages:
+                self.synth_player.supercollider_score.add_message(message, start_time)
+        else:
+            client = self.synth_player.client
+            bundle = client.make_bundle(start_time, osc_messages)
+            if self.synth_player.buffered_playback:
+                client.schedule_bundle(bundle)
+            else:
+                client.send_bundle(bundle)
+
     def play(self, start_time: float, duration: float = None, output_bus: int = 0) -> None:
         final_duration = duration or self.audio_stack.duration
-
-        client = self.synth_player.client
+        if not self.synth_player.should_send_to_score:
+            final_output_bus = output_bus % 2
+        else:
+            final_output_bus = output_bus
         audio_graph = self.audio_stack.pop() \
-            .static_output_bus(output_bus) \
+            .static_output_bus(final_output_bus) \
             .build_graph(start_time, final_duration)
         osc_messages = supercollider_client.new_synths(audio_graph)
-        bundle = client.make_bundle(start_time, osc_messages)
-        if self.synth_player.buffered_playback:
-            client.schedule_bundle(bundle)
-        else:
-            client.send_bundle(bundle)
+        self.handle_osc_messages(start_time, osc_messages)
 
     def send_to_synth_note(self, synth_note: "SynthNote", start_time: float, duration: float = None) -> None:
         final_duration = duration or self.audio_stack.duration
 
-        client = self.synth_player.client
         audio_graph = self.audio_stack.pop() \
             .static_output_bus(synth_note.input.get_output_bus()) \
             .build_graph(start_time, final_duration)
         osc_messages = supercollider_client.new_synths(audio_graph)
-        bundle = client.make_bundle(start_time, osc_messages)
-        if self.synth_player.buffered_playback:
-            client.schedule_bundle(bundle)
-        else:
-            client.send_bundle(bundle)
+        self.handle_osc_messages(start_time, osc_messages)

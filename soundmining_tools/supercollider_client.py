@@ -71,6 +71,10 @@ def group_head(group_id: int, node_id: int) -> osc_message.OscMessage:
     return make_message("/g_new", [node_id, 0, group_id])
 
 
+def c_set() -> osc_message.OscMessage:
+    return make_message("/c_set", [0, 0])
+
+
 def group_tail(group_id: int, node_id: int) -> osc_message.OscMessage:
     return make_message("/g_new", [node_id, 3, group_id])
 
