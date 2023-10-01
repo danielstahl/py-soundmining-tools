@@ -8,7 +8,7 @@ from soundmining_tools.supercollider_receiver import SuperColliderReceiver
 
 
 class Piece:
-    def start(self) -> None:
+    def start(self, should_send_to_score: bool = False) -> None:
         self.supercollider_client = SupercolliderClient()
         self.supercollider_client.start()
         self.control_bus_allocator = bus_allocator.BusAllocator(0)
@@ -19,7 +19,8 @@ class Piece:
         self.synth_player = synth_player.SynthPlayer(self.supercollider_client,
                                                      self.audio_instruments,
                                                      self.control_instruments,
-                                                     self.buf_num_allocator)
+                                                     self.buf_num_allocator,
+                                                     should_send_to_score=should_send_to_score)
         instrument.setup_nodes(self.supercollider_client)
         instrument.load_synth_dir(self.supercollider_client)
         receiver = SuperColliderReceiver()

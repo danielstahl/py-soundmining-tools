@@ -279,7 +279,7 @@ class StereoBandRejectFilter(HighPassFilter):
 
 class RingModulate(AudioInstrument):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
-        super().__init__("lowPassFilter", 1, output_bus_allocator)
+        super().__init__("ringModulate", 1, output_bus_allocator)
 
     def modulate(self, carrier_bus: AudioInstrument, modulator_freq_bus: ControlInstrument) -> Self:
         self.carrier_bus = carrier_bus
@@ -453,6 +453,43 @@ class StereoFreeReverb(AudioInstrument):
         ]
 
 
+class StereoGVerb(AudioInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("stereoGVerb", 2, output_bus_allocator)
+
+    def reverb(self, in_bus: AudioInstrument, amp_bus: ControlInstrument, 
+               roomsize: float = 10, revtime: float = 3, damping: float = 0.5, inputbw: float = 0.5,
+               spread: float = 15, drylevel: float = 1, earlyreflevel: float = 0.7, taillevel: float = 0.5) -> Self:
+        self.in_bus = in_bus
+        self.amp_bus = amp_bus
+        self.roomsize = roomsize
+        self.revtime = revtime
+        self.damping = damping
+        self.inputbw = inputbw
+        self.spread = spread
+        self.drylevel = drylevel
+        self.earlyreflevel = earlyreflevel
+        self.taillevel = taillevel
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.amp_bus.graph(self.in_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in", self.in_bus.dynamic_output_bus(start_time, duration),
+            "ampBus", self.amp_bus.dynamic_output_bus(start_time, duration),
+            "roomsize", self.roomsize,
+            "revtime", self.revtime,
+            "damping", self.damping,
+            "inputbw", self.inputbw,
+            "spread", self.spread,
+            "drylevel", self.drylevel,
+            "earlyreflevel", self.earlyreflevel,
+            "taillevel", self.taillevel
+        ]
+
+
 class Panning(AudioInstrument):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("pan", 2, output_bus_allocator)
@@ -585,6 +622,13 @@ class AudioInstruments:
     def stereo_free_reverb(self, in_bus: AudioInstrument, amp_bus: ControlInstrument,
                            mix: float, room: float, damp: float) -> StereoFreeReverb:
         return StereoFreeReverb(self.audio_bus_allocator).reverb(in_bus, amp_bus, mix, room, damp)
+
+    def stereo_g_verb(self, in_bus: AudioInstrument, amp_bus: ControlInstrument,
+                      roomsize: float = 10, revtime: float = 3, damping: float = 0.5, inputbw: float = 0.5,
+                      spread: float = 15, drylevel: float = 1,
+                      earlyreflevel: float = 0.7, taillevel: float = 0.5) -> StereoFreeReverb:
+        return StereoGVerb(self.audio_bus_allocator) \
+            .reverb(in_bus, amp_bus, roomsize, revtime, damping, inputbw, spread, drylevel, earlyreflevel, taillevel)
 
     def mono_comb(self, in_bus: AudioInstrument,
                   amp_bus: ControlInstrument, delay_time: float, decay_time: float) -> MonoComb:

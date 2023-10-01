@@ -48,5 +48,5 @@ class Sequencer:
             for spawn_sequencer in self.spawn_sequences.get(i, []):
                 spawn_result = spawn_sequencer.generate(current_time) or []
                 sequence_notes.extend(spawn_result)
-            current_time = current_time + self.next_time_handler(i)
+            current_time = max(current_time + self.next_time_handler(i), 0)
         return sequence_notes

@@ -275,6 +275,19 @@ class SynthNote:
         self.audio_stack.push(reverb)
         return self
 
+    def stereo_g_verb(self, amp_bus: ControlInstrument, roomsize: float = 10, revtime: float = 3, damping: float = 0.5,
+                      inputbw: float = 0.5, spread: float = 15, drylevel: float = 1,
+                      earlyreflevel: float = 0.7, taillevel: float = 0.5) -> Self:
+        in_bus = self.audio_stack.pop()
+        reverb = self.synth_player.audio_instruments \
+            .stereo_g_verb(in_bus, amp_bus, roomsize, revtime, damping,
+                           inputbw, spread, drylevel, earlyreflevel, taillevel) \
+            .add_action(AddAction.TAIL_ACTION) \
+            .node_id(self.node_id)
+        self.audio_stack.push(reverb)
+        return self
+
+
     def mono_comb(self, amp_bus: ControlInstrument, delay_time: float, decay_time: float) -> Self:
         in_bus = self.audio_stack.pop()
         comb = self.synth_player.audio_instruments.mono_comb(in_bus, amp_bus, delay_time, decay_time) \
