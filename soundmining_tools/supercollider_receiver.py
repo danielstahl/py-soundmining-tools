@@ -9,6 +9,7 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+
 class NoteHandler:
 
     def handle_note_on(self, note: int, velocity: int, device: str) -> None:

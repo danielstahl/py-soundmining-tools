@@ -68,6 +68,44 @@ class SineControl(ControlInstrument):
             "peakValue", self.peak_value]
 
 
+class SineOscControl(ControlInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("sineOscControl", output_bus_allocator)
+
+    def control(self, freq_bus: ControlInstrument, min_value: float, max_value: float) -> Self:
+        self.freq_bus = freq_bus
+        self.min_value = min_value
+        self.max_value = max_value
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.prepend_to_graph(self.freq_bus.graph(parent))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "freqBus", self.freq_bus.dynamic_output_bus(start_time, duration),
+            "minValue", self.min_value,
+            "maxValue", self.max_value]
+
+
+class MixControl(ControlInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("controlMix", output_bus_allocator)
+
+    def control(self, in1_bus: ControlInstrument, in2_bus: ControlInstrument) -> Self:
+        self.in_bus1 = in1_bus
+        self.in_bus2 = in2_bus
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.prepend_to_graph(self.in_bus1.graph(self.in_bus2.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "in1", self.in_bus1.dynamic_output_bus(start_time, duration),
+            "in2", self.in_bus2.dynamic_output_bus(start_time, duration)]
+
+
 LEVELS_T = TypeVar('LEVELS_T', bound='tuple[float, ...]')
 TIMES_T = TypeVar('TIMES_T', bound='tuple[float, ...]')
 CURVES_T = TypeVar('CURVES_T', bound='tuple[float, ...]')
@@ -138,6 +176,12 @@ class ControlInstruments:
 
     def sine_control(self, start_value: float, peak_value: float) -> SineControl:
         return SineControl(self.control_bus_allocator).control(start_value, peak_value)
+
+    def sine_osc_control(self, freq_bus: ControlInstrument, min_value: float, max_value: float) -> SineOscControl:
+        return SineOscControl(self.control_bus_allocator).control(freq_bus, min_value, max_value)
+
+    def mix_control(self, in1_bus: ControlInstrument, in2_bus: ControlInstrument) -> MixControl:
+        return MixControl(self.control_bus_allocator).control(in1_bus, in2_bus)
 
     def two_block_control(self, levels: tuple[float, float, float],
                           times: tuple[float, float],

@@ -287,7 +287,6 @@ class SynthNote:
         self.audio_stack.push(reverb)
         return self
 
-
     def mono_comb(self, amp_bus: ControlInstrument, delay_time: float, decay_time: float) -> Self:
         in_bus = self.audio_stack.pop()
         comb = self.synth_player.audio_instruments.mono_comb(in_bus, amp_bus, delay_time, decay_time) \

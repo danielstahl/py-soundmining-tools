@@ -205,12 +205,12 @@ class LowPassFilter(AudioInstrument):
         ]
 
 
-class MonoLowPassFilter(HighPassFilter):
+class MonoLowPassFilter(LowPassFilter):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("monoLowPassFilter", 1, output_bus_allocator)
 
 
-class StereoLowPassFilter(HighPassFilter):
+class StereoLowPassFilter(LowPassFilter):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("stereoLowPassFilter", 2, output_bus_allocator)
 
@@ -236,12 +236,12 @@ class BandPassFilter(AudioInstrument):
         ]
 
 
-class MonoBandPassFilter(HighPassFilter):
+class MonoBandPassFilter(BandPassFilter):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("monoBandPassFilter", 1, output_bus_allocator)
 
 
-class StereoBandPassFilter(HighPassFilter):
+class StereoBandPassFilter(BandPassFilter):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("stereoBandPassFilter", 2, output_bus_allocator)
 
@@ -267,12 +267,12 @@ class BandRejectFilter(AudioInstrument):
         ]
 
 
-class MonoBandRejectFilter(HighPassFilter):
+class MonoBandRejectFilter(BandRejectFilter):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("monoBandRejectFilter", 1, output_bus_allocator)
 
 
-class StereoBandRejectFilter(HighPassFilter):
+class StereoBandRejectFilter(BandRejectFilter):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("stereoBandRejectFilter", 2, output_bus_allocator)
 

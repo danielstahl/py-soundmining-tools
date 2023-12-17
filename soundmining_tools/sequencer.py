@@ -9,6 +9,7 @@ class SequenceNote:
     track: str
     duration: float = 1
     note: int = 0
+    freq: float = None
     peak: float = 0.5
     color: str = "black"
 

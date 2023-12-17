@@ -13,7 +13,7 @@ def random_int_range(min: int, max: int) -> int:
 T = TypeVar('T')
 
 
-def pick_items(items: list[T], size) -> list[T]:
+def pick_items(items: list[T], size: int) -> list[T]:
     return random.choices(items, k=size)
 
 
