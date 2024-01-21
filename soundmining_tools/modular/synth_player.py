@@ -88,11 +88,14 @@ class SynthNote:
         self.audio_stack.push(self.input)
         return self
 
-    def sound_mono(self, sound: str, rate: float, amp: ControlInstrument) -> Self:
+    def sound_mono(self, sound: str, rate: float, amp: ControlInstrument, start_override: float = None, 
+                   end_override: float = None) -> Self:
         synth_player = self.synth_player
         sound_play = synth_player.get_sound(sound)
+        start = start_override or sound_play.start
+        end = end_override or sound_play.end
         mono_play_buffer = synth_player.audio_instruments \
-            .mono_play_buffer(sound_play.buf_num, rate, sound_play.start, sound_play.end, amp) \
+            .mono_play_buffer(sound_play.buf_num, rate, start, end, amp) \
             .add_action(AddAction.TAIL_ACTION) \
             .node_id(self.node_id)
         duration = sound_play.duration(rate)

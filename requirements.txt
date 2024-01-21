@@ -4,3 +4,4 @@ ipycanvas
 matplotlib
 jupyterlab
 ipywidgets
+librosa

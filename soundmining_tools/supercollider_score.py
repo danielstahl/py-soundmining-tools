@@ -68,6 +68,8 @@ class SupercolliderScore:
                 return f"[{timestamp}, [{self.score_address(message.address)}, {message.params[0]}, {message.params[1]}, {message.params[2]}]]"
             case "/d_loadDir":
                 return f"[{timestamp}, [{self.score_address(message.address)}, '{message.params[0]}']]"
+            case "/b_allocRead":
+                return f"[{timestamp}, [{self.score_address(message.address)}, {message.params[0]}, '{message.params[1]}']]"
             case "/s_new":
                 return self.new_synth_message_to_string(timestamp, message)
             case _ as unknown_address:
