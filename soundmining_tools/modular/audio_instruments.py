@@ -1,4 +1,3 @@
-from soundmining_tools import bus_allocator
 from soundmining_tools.modular.instrument import Instrument, ControlInstrument, AudioInstrument
 from soundmining_tools.bus_allocator import BusAllocator
 from typing import Self
@@ -275,6 +274,48 @@ class MonoBandRejectFilter(BandRejectFilter):
 class StereoBandRejectFilter(BandRejectFilter):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("stereoBandRejectFilter", 2, output_bus_allocator)
+
+
+class FmOscModulate(AudioInstrument):
+    def __init__(self, instrument_name: str, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, 1, output_bus_allocator)
+
+    def modulate(self, carrier_freq_bus: ControlInstrument, modulator_bus: AudioInstrument, 
+                 amp_bus: ControlInstrument) -> Self:
+        self.carrier_freq_bus = carrier_freq_bus
+        self.modulator_bus = modulator_bus
+        self.amp_bus = amp_bus
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.carrier_freq_bus.graph(self.modulator_bus.graph(self.amp_bus.graph(parent))))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "carrierFreqBus", self.carrier_freq_bus.dynamic_output_bus(start_time, duration),
+            "modulatorBus", self.modulator_bus.dynamic_output_bus(start_time, duration),
+            "ampBus", self.amp_bus.dynamic_output_bus(start_time, duration)
+        ]
+
+
+class FmSineModulate(FmOscModulate):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("fmSineModulate", output_bus_allocator)
+
+
+class FmPulseModulate(FmOscModulate):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("fmPulseModulate", output_bus_allocator)
+
+
+class FmSawModulate(FmOscModulate):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("fmSawModulate", output_bus_allocator)
+
+
+class FmTriangleModulate(FmOscModulate):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("fmTriangleModulate", output_bus_allocator)
 
 
 class RingModulate(AudioInstrument):
@@ -602,6 +643,22 @@ class AudioInstruments:
     def stereo_band_reject_filter(self, in_bus: AudioInstrument,
                                   freq_bus: ControlInstrument, rq_bus: ControlInstrument) -> StereoBandRejectFilter:
         return StereoBandRejectFilter(self.audio_bus_allocator).filter(in_bus, freq_bus, rq_bus)
+
+    def fm_sine_modulate(self, carrier_freq_bus: ControlInstrument, modulator_bus: AudioInstrument,
+                         amp_bus: ControlInstrument) -> FmSineModulate:
+        return FmSineModulate(self.audio_bus_allocator).modulate(carrier_freq_bus, modulator_bus, amp_bus)
+
+    def fm_pulse_modulate(self, carrier_freq_bus: ControlInstrument, modulator_bus: AudioInstrument,
+                          amp_bus: ControlInstrument) -> FmSineModulate:
+        return FmPulseModulate(self.audio_bus_allocator).modulate(carrier_freq_bus, modulator_bus, amp_bus)
+
+    def fm_saw_modulate(self, carrier_freq_bus: ControlInstrument, modulator_bus: AudioInstrument,
+                        amp_bus: ControlInstrument) -> FmSineModulate:
+        return FmSawModulate(self.audio_bus_allocator).modulate(carrier_freq_bus, modulator_bus, amp_bus)
+
+    def fm_triangle_modulate(self, carrier_freq_bus: ControlInstrument, modulator_bus: AudioInstrument,
+                             amp_bus: ControlInstrument) -> FmSineModulate:
+        return FmTriangleModulate(self.audio_bus_allocator).modulate(carrier_freq_bus, modulator_bus, amp_bus)
 
     def ring_modulate(self, carrier_bus: AudioInstrument, modulator_freq_bus: ControlInstrument) -> RingModulate:
         return RingModulate(self.audio_bus_allocator).modulate(carrier_bus, modulator_freq_bus)

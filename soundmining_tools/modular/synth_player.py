@@ -230,6 +230,42 @@ class SynthNote:
         self.audio_stack.push(filter)
         return self
 
+    def fm_sine_modulate(self, carrier_freq_bus: ControlInstrument, amp_bus: ControlInstrument) -> Self:
+        modulator_bus = self.audio_stack.pop()
+        modulate = (
+            self.synth_player.audio_instruments.fm_sine_modulate(carrier_freq_bus, modulator_bus, amp_bus)
+                .add_action(AddAction.TAIL_ACTION)
+                .node_id(self.node_id))
+        self.audio_stack.push(modulate)
+        return self
+
+    def fm_pulse_modulate(self, carrier_freq_bus: ControlInstrument, amp_bus: ControlInstrument) -> Self:
+        modulator_bus = self.audio_stack.pop()
+        modulate = (
+            self.synth_player.audio_instruments.fm_pulse_modulate(carrier_freq_bus, modulator_bus, amp_bus)
+                .add_action(AddAction.TAIL_ACTION)
+                .node_id(self.node_id))
+        self.audio_stack.push(modulate)
+        return self
+
+    def fm_triangle_modulate(self, carrier_freq_bus: ControlInstrument, amp_bus: ControlInstrument) -> Self:
+        modulator_bus = self.audio_stack.pop()
+        modulate = (
+            self.synth_player.audio_instruments.fm_triangle_modulate(carrier_freq_bus, modulator_bus, amp_bus)
+                .add_action(AddAction.TAIL_ACTION)
+                .node_id(self.node_id))
+        self.audio_stack.push(modulate)
+        return self
+
+    def fm_saw_modulate(self, carrier_freq_bus: ControlInstrument, amp_bus: ControlInstrument) -> Self:
+        modulator_bus = self.audio_stack.pop()
+        modulate = (
+            self.synth_player.audio_instruments.fm_saw_modulate(carrier_freq_bus, modulator_bus, amp_bus)
+                .add_action(AddAction.TAIL_ACTION)
+                .node_id(self.node_id))
+        self.audio_stack.push(modulate)
+        return self
+
     def ring_modulate(self, modulater_freq_bus: ControlInstrument) -> Self:
         in_bus = self.audio_stack.pop()
         modulate = self.synth_player.audio_instruments.ring_modulate(in_bus, modulater_freq_bus) \

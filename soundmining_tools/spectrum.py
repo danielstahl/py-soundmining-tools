@@ -6,6 +6,16 @@ def make_spectrum(fundamental: float, fact: float, size: int) -> list[float]:
     return result
 
 
+# make undertone series
+# Sub harmonic series
+def make_undertone_spectrum(fundamental: float, fact: float, size: int) -> list[float]:
+    result = []
+    for i in range(1, size + 1):
+        multiplier = ((i - 1) * fact) + 1
+        result.append(fundamental / multiplier)
+    return result
+
+
 def make_fm_synthesis(carrier: float,
                       modulator: float,
                       size: int) -> list[tuple[float, float]]:

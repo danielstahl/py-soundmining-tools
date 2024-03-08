@@ -38,6 +38,9 @@ class SupercolliderClient:
         logging.info("Schdule bundle with time {}".format(bundle.timestamp))
         self.buffered_playback.add_bundle(bundle)
 
+    def get_playback_time(self) -> float:
+        return time.time() - self.clock_time + PLAYBACK_DELAY
+
     def make_bundle(self, delta_time: float, messages: list[osc_message.OscMessage]) -> osc_bundle.OscBundle:
         builder = osc_bundle_builder.OscBundleBuilder(self.clock_time + PLAYBACK_DELAY + delta_time)
         for message in messages:
@@ -96,7 +99,7 @@ def deep_free(node_id: int) -> osc_message.OscMessage:
 
 
 def clear_sched() -> osc_message.OscMessage:
-    return make_message("/clearSched")
+    return make_message("/clearSched", [])
 
 
 def alloc_buffer(buffer_number: int, number_of_frames: int, number_of_channels: int = 2) -> osc_message.OscMessage:

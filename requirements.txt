@@ -1,4 +1,5 @@
 # main requirements
+numpy
 python-osc
 ipycanvas
 matplotlib

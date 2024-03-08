@@ -1,3 +1,4 @@
+from soundmining_tools import supercollider_client
 from soundmining_tools.supercollider_client import SupercolliderClient
 from soundmining_tools import bus_allocator
 from soundmining_tools.modular import audio_instruments, control_instruments
@@ -33,9 +34,15 @@ class Piece:
         self.receiver.stop()
 
     def reset(self) -> None:
+        self.synth_player.client.send_message(supercollider_client.clear_sched())
+        self.synth_player.client.send_message(supercollider_client.deep_free(0))
         self.control_bus_allocator.reset_allocations()
         self.audio_bus_allocator.reset_allocations()
         self.supercollider_client.reset_clock()
+
+    def reset_deep(self) -> None:
+        instrument.setup_nodes(self.supercollider_client)
+        instrument.load_synth_dir(self.supercollider_client)
 
 
 piece = Piece()

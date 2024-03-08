@@ -3,9 +3,13 @@ from soundmining_tools import spectrum
 
 
 class TestSpectrum(unittest.TestCase):
-    def test_transpose(self):
+    def test_spectrum(self):
         spect = spectrum.make_spectrum(440.0, 1.0, 4)
         self.assertEqual(spect, [440.0, 880.0, 1320.0, 1760.0])
+
+    def test_undertone_spectrum(self):
+        spect = spectrum.make_undertone_spectrum(440.0, 1.0, 4)
+        self.assertEqual(spect, [440.0, 220.0, 146.66666666666666, 110.0])
 
     def test_make_fact(self):
         self.assertEqual(spectrum.make_fact(440.0, 880.0), 1.0)
