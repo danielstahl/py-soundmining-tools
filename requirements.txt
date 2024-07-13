@@ -6,3 +6,4 @@ matplotlib
 jupyterlab
 ipywidgets
 librosa
+ipykernel

@@ -20,7 +20,7 @@ class UiPiece:
                 duration = max(duration, note.start + note.duration)
         return duration
 
-    def get_track_min_max_freq(self) -> (float, float):
+    def get_track_min_max_freq(self) -> tuple[float, float]:
         min_freq = 0
         max_freq = 0
         for track in self.tracks:

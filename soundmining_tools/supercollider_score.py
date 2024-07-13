@@ -47,8 +47,8 @@ class SupercolliderScore:
             instrument_args.append(f"\\{params[i]}")
             match params[i + 1]:
                 case list() as array_param:
-                    if len(array_param) > 2:
-                        is_array_argument = True
+                    # if len(array_param) > 1:
+                    is_array_argument = True
                     joined_array_param = ", ".join([str(p) for p in array_param])
                     instrument_args.append(f"[{joined_array_param}]")
                 case _ as default_param:
