@@ -1,5 +1,4 @@
 
-from soundmining_tools import bus_allocator
 from soundmining_tools.modular.instrument import Instrument, ControlInstrument
 from soundmining_tools.bus_allocator import BusAllocator
 from typing import Self
