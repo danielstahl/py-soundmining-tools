@@ -100,3 +100,29 @@ score.recordNRT(
 
 server.remove;
 )
+
+(
+var server, score;
+
+server = Server(\nrt,
+    options: ServerOptions.new
+	.sampleRate_(96000)
+    .numOutputBusChannels_(4)
+	.maxNodes_(4096)
+	.memSize_(2.pow(20))
+    .numInputBusChannels_(2));
+
+score = Score.newFromFile("/Users/danielstahl/Documents/Music/Pieces/Module Music/Module Music 10/sc/module-music-10/module_music_10/module-music-10-v1.txt");
+
+score.recordNRT(
+    outputFilePath: "/Users/danielstahl/Documents/Music/Pieces/Module Music/Module Music 10/stage/moduleMusic10-v1.caf".standardizePath,
+    headerFormat: "CAF",
+    sampleFormat: "float",
+    options: server.options,
+	duration: 380,
+    action: { "done".postln }
+);
+
+server.remove;
+)
+

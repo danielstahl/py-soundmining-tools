@@ -9,6 +9,8 @@ from pythonosc.osc_message import OscMessage
 from typing import Self
 from soundmining_tools.modular_v2.instruments_v2 import InstrumentsV2
 from soundmining_tools.supercollider_score import SupercolliderScore
+from soundmining_tools.modular.sound_play import BufNumAllocator
+from soundmining_tools.modular.sound_play import SoundPlay
 
 
 class SynthPlayerV2:
@@ -16,20 +18,38 @@ class SynthPlayerV2:
         self,
         client: SupercolliderClient,
         instruments: InstrumentsV2,
+        buf_num_allocator: BufNumAllocator,
         should_send_to_score: bool = False,
     ) -> None:
         self.client = client
         self.instruments = instruments
+        self.buf_num_allocator = buf_num_allocator
         self.supercollider_score = SupercolliderScore()
         self.should_send_to_score = should_send_to_score
+        self.sound_plays = {}
 
     def note(self, node_id: NodeId = NodeId.SOURCE) -> "SynthNoteV2":
         return SynthNoteV2(self, node_id)
 
+    def add_sound(self, name: str, sound_path: str, start: float, end: float) -> Self:
+        self.sound_plays[name] = SoundPlay(sound_path, start, end)
+        return self
+
+    def get_sound(self, name) -> SoundPlay:
+        return self.sound_plays[name]
+
     def start(self) -> Self:
+        self.buf_num_allocator.reset()
+        for sound_play in self.sound_plays.values():
+            sound_play.init(self.buf_num_allocator.next(), self.client)
+        self.supercollider_score.reset()
         return self
 
     def stop(self) -> Self:
+        for sound_play in self.sound_plays.values():
+            sound_play.stop(self.client)
+        self.buf_num_allocator.reset()
+        self.supercollider_score.reset()
         return self
 
 
@@ -69,6 +89,44 @@ class SynthNoteV2:
     def push(self, instrument: AudioInstrument) -> Self:
         self.audio_stack.push(instrument)
         return self
+
+    def sound_mono(
+        self,
+        sound: str,
+        rate: float,
+        amp: AudioInstrument,
+        start_override: float = None,
+        end_override: float = None,
+    ) -> Self:
+        synth_player = self.synth_player
+        sound_play = synth_player.get_sound(sound)
+        start = start_override or sound_play.start
+        end = end_override or sound_play.end
+        mono_play_buffer = (
+            synth_player.instruments.mono_play_buffer(sound_play.buf_num, rate, start, end, amp)
+            .add_action(AddAction.TAIL_ACTION)
+            .node_id(self.node_id)
+        )
+        duration = sound_play.duration(rate)
+        self.audio_stack.push(mono_play_buffer, duration)
+        return self
+
+    def bank_of_osc(self, freqs: list[float], amps: list[float], phases: list[float]) -> Self:
+        bank = (
+            self.synth_player.instruments.bank_of_osc(freqs, amps, phases)
+            .add_action(AddAction.TAIL_ACTION)
+            .node_id(self.node_id)
+        )
+        return self.push(bank)
+
+    def bank_of_resonators(self, freqs: list[float], amps: list[float], ring_times: list[float]) -> Self:
+        in_bus = self.audio_stack.pop()
+        bank = (
+            self.synth_player.instruments.bank_of_resonators(in_bus, freqs, amps, ring_times)
+            .add_action(AddAction.TAIL_ACTION)
+            .node_id(self.node_id)
+        )
+        return self.push(bank)        
 
     def sine(self, freq: AudioInstrument, amp: AudioInstrument) -> Self:
         osc = (
