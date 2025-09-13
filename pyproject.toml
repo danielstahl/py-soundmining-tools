@@ -10,6 +10,9 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = [
-    "soundmining_tools"
+package-dir = {"" = "src"}
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
 ]
