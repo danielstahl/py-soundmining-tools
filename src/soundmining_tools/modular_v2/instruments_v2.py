@@ -33,18 +33,16 @@ class AbstractLineControl(AudioInstrument):
         return self.prepend_to_graph(parent)
 
     def internal_build(self, start_time: float, duration: float) -> list:
-        return [
-            "startValue", self.start_value,
-            "endValue", self.end_value]
+        return ["startValue", self.start_value, "endValue", self.end_value]
 
 
 class LineControl(AbstractLineControl):
-    def __init__(self,  output_bus_allocator: BusAllocator) -> None:
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("lineControl", output_bus_allocator)
 
 
 class XLineControl(AbstractLineControl):
-    def __init__(self,  output_bus_allocator: BusAllocator) -> None:
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("xlineControl", output_bus_allocator)
 
 
@@ -61,13 +59,11 @@ class SineControl(AudioInstrument):
         return self.prepend_to_graph(parent)
 
     def internal_build(self, start_time: float, duration: float) -> list:
-        return [
-            "startValue", self.start_value,
-            "peakValue", self.peak_value]
+        return ["startValue", self.start_value, "peakValue", self.peak_value]
 
 
 class PercControl(AudioInstrument):
-    def __init__(self,  output_bus_allocator: BusAllocator) -> None:
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("percControl", 1, output_bus_allocator)
 
     def control(self, start_value: float, peak_value: float, attack_time: float = 0.01, curve: float = -4) -> Self:
@@ -82,15 +78,20 @@ class PercControl(AudioInstrument):
 
     def internal_build(self, start_time: float, duration: float) -> list:
         return [
-            "attackTime", self.attack_time,
-            "curve", self.curve,
-            "startValue", self.start_value,
-            "peakValue", self.peak_value]
+            "attackTime",
+            self.attack_time,
+            "curve",
+            self.curve,
+            "startValue",
+            self.start_value,
+            "peakValue",
+            self.peak_value,
+        ]
 
 
-LEVELS_T = TypeVar('LEVELS_T', bound='tuple[float, ...]')
-TIMES_T = TypeVar('TIMES_T', bound='tuple[float, ...]')
-CURVES_T = TypeVar('CURVES_T', bound='tuple[float, ...]')
+LEVELS_T = TypeVar("LEVELS_T", bound="tuple[float, ...]")
+TIMES_T = TypeVar("TIMES_T", bound="tuple[float, ...]")
+CURVES_T = TypeVar("CURVES_T", bound="tuple[float, ...]")
 
 
 class BlockControl(AudioInstrument):
@@ -107,40 +108,111 @@ class BlockControl(AudioInstrument):
         return self.prepend_to_graph(parent)
 
     def internal_build(self, start_time: float, duration: float) -> list:
-        return [
-            "levels", list(self.levels),
-            "times", list(self.times),
-            "curves", list(self.curves)]
+        return ["levels", list(self.levels), "times", list(self.times), "curves", list(self.curves)]
+
+
+class BlockShapeControl(AudioInstrument):
+    def __init__(self, instrument_name, output_bus_allocator: BusAllocator) -> None:
+        super().__init__(instrument_name, 1, output_bus_allocator)
+
+    def _control(self, levels: LEVELS_T, times: TIMES_T) -> Self:
+        self.levels = levels
+        self.times = times
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.prepend_to_graph(parent)
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return ["levels", list(self.levels), "times", list(self.times)]
 
 
 class TwoBLockControl(BlockControl):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("twoBlockControl", output_bus_allocator)
 
-    def control(self, levels: tuple[float, float, float],
-                times: tuple[float, float],
-                curves: tuple[float, float]) -> Self:
+    def control(
+        self, levels: tuple[float, float, float], times: tuple[float, float], curves: tuple[float, float]
+    ) -> Self:
         return super()._control(levels, times, curves)
+
+
+class TwoBLockSineControl(BlockShapeControl):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("twoBlockSineControl", output_bus_allocator)
+
+    def control(self, levels: tuple[float, float, float], times: tuple[float, float]) -> Self:
+        return super()._control(levels, times)
+
+
+class TwoBLockExpControl(BlockShapeControl):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("twoBlockExpControl", output_bus_allocator)
+
+    def control(self, levels: tuple[float, float, float], times: tuple[float, float]) -> Self:
+        return super()._control(levels, times)
 
 
 class ThreeBLockControl(BlockControl):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("threeBlockControl", output_bus_allocator)
 
-    def control(self, levels: tuple[float, float, float, float],
-                times: tuple[float, float, float],
-                curves: tuple[float, float, float]) -> Self:
+    def control(
+        self,
+        levels: tuple[float, float, float, float],
+        times: tuple[float, float, float],
+        curves: tuple[float, float, float],
+    ) -> Self:
         return super()._control(levels, times, curves)
+
+
+class ThreeBLockSineControl(BlockShapeControl):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("threeBlockSineControl", output_bus_allocator)
+
+    def control(self, levels: tuple[float, float, float, float], times: tuple[float, float, float]) -> Self:
+        return super()._control(levels, times)
+
+
+class ThreeBLockExpControl(BlockShapeControl):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("threeBlockExpControl", output_bus_allocator)
+
+    def control(self, levels: tuple[float, float, float, float], times: tuple[float, float, float]) -> Self:
+        return super()._control(levels, times)
 
 
 class FourBLockControl(BlockControl):
     def __init__(self, output_bus_allocator: BusAllocator) -> None:
         super().__init__("fourBlockControl", output_bus_allocator)
 
-    def control(self, levels: tuple[float, float, float, float, float],
-                times: tuple[float, float, float, float],
-                curves: tuple[float, float, float, float]) -> Self:
+    def control(
+        self,
+        levels: tuple[float, float, float, float, float],
+        times: tuple[float, float, float, float],
+        curves: tuple[float, float, float, float],
+    ) -> Self:
         return super()._control(levels, times, curves)
+
+
+class FourBLockSineControl(BlockShapeControl):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("fourBlockSineControl", output_bus_allocator)
+
+    def control(
+        self, levels: tuple[float, float, float, float, float], times: tuple[float, float, float, float]
+    ) -> Self:
+        return super()._control(levels, times)
+
+
+class FourBLockExpControl(BlockShapeControl):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("fourBlockExpControl", output_bus_allocator)
+
+    def control(
+        self, levels: tuple[float, float, float, float, float], times: tuple[float, float, float, float]
+    ) -> Self:
+        return super()._control(levels, times)
 
 
 class SignalCombine(AudioInstrument):
@@ -157,8 +229,11 @@ class SignalCombine(AudioInstrument):
 
     def internal_build(self, start_time: float, duration: float) -> list:
         return [
-            "in1", self.in_bus1.dynamic_output_bus(start_time, duration),
-            "in2", self.in_bus2.dynamic_output_bus(start_time, duration)]
+            "in1",
+            self.in_bus1.dynamic_output_bus(start_time, duration),
+            "in2",
+            self.in_bus2.dynamic_output_bus(start_time, duration),
+        ]
 
 
 class SignalMix(SignalCombine):
@@ -190,8 +265,11 @@ class SignalShape(AudioInstrument):
 
     def internal_build(self, start_time: float, duration: float) -> list:
         return [
-            "in", self.in_bus.dynamic_output_bus(start_time, duration),
-            "shapeBus", self.shape_bus.dynamic_output_bus(start_time, duration)]
+            "in",
+            self.in_bus.dynamic_output_bus(start_time, duration),
+            "shapeBus",
+            self.shape_bus.dynamic_output_bus(start_time, duration),
+        ]
 
 
 class OscInstrument(AudioInstrument):
@@ -233,6 +311,40 @@ class SawOsc(OscInstrument):
 class DustOsc(OscInstrument):
     def __init__(self, audio_bus_allocator: BusAllocator) -> None:
         super().__init__("dustOsc", audio_bus_allocator)
+
+
+class ImpulseOsc(OscInstrument):
+    def __init__(self, audio_bus_allocator: BusAllocator) -> None:
+        super().__init__("impulseOsc", audio_bus_allocator)
+
+
+class LfNoiseInstrument(AudioInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("lfNoiseOsc", 1, output_bus_allocator)
+
+    def lf_noise(
+        self, amp_bus: AudioInstrument, freq_bus: AudioInstrument, low_value: float, high_value: float
+    ) -> Self:
+        self.amp_bus = amp_bus
+        self.freq_bus = freq_bus
+        self.low_value = low_value
+        self.high_value = high_value
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(self.amp_bus.graph(self.freq_bus.graph(parent)))
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "freqBus",
+            self.freq_bus.dynamic_output_bus(start_time, duration),
+            "ampBus",
+            self.amp_bus.dynamic_output_bus(start_time, duration),
+            "lowValue",
+            self.low_value,
+            "highValue",
+            self.high_value,
+        ]
 
 
 class PulseOsc(AudioInstrument):
@@ -367,6 +479,47 @@ class BankOfResonators(AudioInstrument):
             self.amps,
             "ringTimes",
             self.ring_times,
+        ]
+
+
+class MonoGrainBuf(AudioInstrument):
+    def __init__(self, output_bus_allocator: BusAllocator) -> None:
+        super().__init__("monoGrainBuf", 1, output_bus_allocator)
+
+    def grain_buf(
+        self,
+        soundbuf: int,
+        grain_trigger_bus: AudioInstrument,
+        grain_duration_bus: AudioInstrument,
+        grain_rate_bus: AudioInstrument,
+        grain_pos_bus: AudioInstrument,
+    ) -> Self:
+        self.soundbuf = soundbuf
+        self.grain_trigger_bus = grain_trigger_bus
+        self.grain_duration_bus = grain_duration_bus
+        self.grain_rate_bus = grain_rate_bus
+        self.grain_pos_bus = grain_pos_bus
+        return self
+
+    def graph(self, parent: list[Instrument]) -> list[Instrument]:
+        return self.append_to_graph(
+            self.grain_trigger_bus.graph(
+                self.grain_duration_bus.graph(self.grain_rate_bus.graph(self.grain_pos_bus.graph(parent)))
+            )
+        )
+
+    def internal_build(self, start_time: float, duration: float) -> list:
+        return [
+            "soundbuf",
+            self.soundbuf,
+            "grainTriggerBus",
+            self.grain_trigger_bus.dynamic_output_bus(start_time, duration),
+            "grainDurationBus",
+            self.grain_duration_bus.dynamic_output_bus(start_time, duration),
+            "grainRateBus",
+            self.grain_rate_bus.dynamic_output_bus(start_time, duration),
+            "grainPosBus",
+            self.grain_pos_bus.dynamic_output_bus(start_time, duration),
         ]
 
 
@@ -772,6 +925,14 @@ class InstrumentsV2:
     def dust_osc(self, amp_bus: AudioInstrument, freq_bus: AudioInstrument) -> DustOsc:
         return DustOsc(self.audio_bus_allocator).osc(amp_bus, freq_bus)
 
+    def impulse_osc(self, amp_bus: AudioInstrument, freq_bus: AudioInstrument) -> ImpulseOsc:
+        return ImpulseOsc(self.audio_bus_allocator).osc(amp_bus, freq_bus)
+
+    def lf_noise_osc(
+        self, amp_bus: AudioInstrument, freq_bus: AudioInstrument, low_value: float, high_value: float
+    ) -> LfNoiseInstrument:
+        return LfNoiseInstrument(self.audio_bus_allocator).lf_noise(amp_bus, freq_bus, low_value, high_value)
+
     def white_noise_osc(self, amp_bus: AudioInstrument) -> WhiteNoiseOsc:
         return WhiteNoiseOsc(self.audio_bus_allocator).noise(amp_bus)
 
@@ -795,7 +956,23 @@ class InstrumentsV2:
         self, in_bus: AudioInstrument, freqs: list[float], amps: list[float], ring_times: list[float]
     ) -> BankOfResonators:
         return BankOfResonators(self.audio_bus_allocator).bank_of_resonators(in_bus, freqs, amps, ring_times)
-    
+
+    def mono_grain_buf(
+        self,
+        soundbuf: int,
+        grain_trigger_bus: AudioInstrument,
+        grain_duration_bus: AudioInstrument,
+        grain_rate_bus: AudioInstrument,
+        grain_pos_bus: AudioInstrument,
+    ) -> MonoGrainBuf:
+        return MonoGrainBuf(self.audio_bus_allocator).grain_buf(
+            soundbuf,
+            grain_trigger_bus,
+            grain_duration_bus,
+            grain_rate_bus,
+            grain_pos_bus,
+        )
+
     def mono_high_pass_filter(self, in_bus: AudioInstrument, freq_bus: AudioInstrument) -> MonoHighPassFilter:
         return MonoHighPassFilter(self.audio_bus_allocator).filter(in_bus, freq_bus)
 
@@ -845,24 +1022,61 @@ class InstrumentsV2:
     def sine_control(self, start_value: float, peak_value: float) -> SineControl:
         return SineControl(self.audio_bus_allocator).control(start_value, peak_value)
 
-    def perc_control(self, start_value: float, peak_value: float,
-                     attack_time: float = 0.01, curve: float = -4) -> PercControl:
+    def perc_control(
+        self, start_value: float, peak_value: float, attack_time: float = 0.01, curve: float = -4
+    ) -> PercControl:
         return PercControl(self.audio_bus_allocator).control(start_value, peak_value, attack_time, curve)
 
-    def two_block_control(self, levels: tuple[float, float, float],
-                          times: tuple[float, float],
-                          curves: tuple[float, float]) -> TwoBLockControl:
+    def two_block_control(
+        self, levels: tuple[float, float, float], times: tuple[float, float], curves: tuple[float, float]
+    ) -> TwoBLockControl:
         return TwoBLockControl(self.audio_bus_allocator).control(levels, times, curves)
 
-    def three_block_control(self, levels: tuple[float, float, float, float],
-                            times: tuple[float, float, float],
-                            curves: tuple[float, float, float]) -> ThreeBLockControl:
+    def two_block_sine_control(
+        self, levels: tuple[float, float, float], times: tuple[float, float]
+    ) -> TwoBLockSineControl:
+        return TwoBLockSineControl(self.audio_bus_allocator).control(levels, times)
+
+    def two_block_exp_control(
+        self, levels: tuple[float, float, float], times: tuple[float, float]
+    ) -> TwoBLockExpControl:
+        return TwoBLockExpControl(self.audio_bus_allocator).control(levels, times)
+
+    def three_block_control(
+        self,
+        levels: tuple[float, float, float, float],
+        times: tuple[float, float, float],
+        curves: tuple[float, float, float],
+    ) -> ThreeBLockControl:
         return ThreeBLockControl(self.audio_bus_allocator).control(levels, times, curves)
 
-    def four_block_control(self, levels: tuple[float, float, float, float, float],
-                           times: tuple[float, float, float, float],
-                           curves: tuple[float, float, float, float]) -> ThreeBLockControl:
+    def three_block_sine_control(
+        self, levels: tuple[float, float, float, float], times: tuple[float, float, float]
+    ) -> ThreeBLockSineControl:
+        return ThreeBLockSineControl(self.audio_bus_allocator).control(levels, times)
+
+    def three_block_exp_control(
+        self, levels: tuple[float, float, float, float], times: tuple[float, float, float]
+    ) -> ThreeBLockExpControl:
+        return ThreeBLockExpControl(self.audio_bus_allocator).control(levels, times)
+
+    def four_block_control(
+        self,
+        levels: tuple[float, float, float, float, float],
+        times: tuple[float, float, float, float],
+        curves: tuple[float, float, float, float],
+    ) -> ThreeBLockControl:
         return FourBLockControl(self.audio_bus_allocator).control(levels, times, curves)
+
+    def four_block_sine_control(
+        self, levels: tuple[float, float, float, float, float], times: tuple[float, float, float, float]
+    ) -> ThreeBLockSineControl:
+        return FourBLockSineControl(self.audio_bus_allocator).control(levels, times)
+
+    def four_block_exp_control(
+        self, levels: tuple[float, float, float, float, float], times: tuple[float, float, float, float]
+    ) -> ThreeBLockExpControl:
+        return FourBLockExpControl(self.audio_bus_allocator).control(levels, times)
 
     def signal_mix(self, in1_bus: AudioInstrument, in2_bus: AudioInstrument) -> SignalMix:
         return SignalMix(self.audio_bus_allocator).combine(in1_bus, in2_bus)
@@ -884,7 +1098,7 @@ class InstrumentsV2:
 
     def stereo_volume(self, in_bus: AudioInstrument, amp_bus: AudioInstrument) -> StereoVolume:
         return StereoVolume(self.audio_bus_allocator).volume(in_bus, amp_bus)
-    
+
     def stereo_hall_reverb(
         self,
         in_bus: AudioInstrument,
@@ -936,7 +1150,7 @@ class InstrumentsV2:
         return StereoGVerb(self.audio_bus_allocator).reverb(
             in_bus, amp_bus, roomsize, revtime, damping, inputbw, spread, drylevel, earlyreflevel, taillevel
         )
-    
+
     def mono_audio_bus(self) -> StaticMonoAudioBusInstrument:
         return StaticMonoAudioBusInstrument(self.audio_bus_allocator)
 

@@ -1,7 +1,7 @@
 from soundmining_tools import supercollider_client
 from soundmining_tools.supercollider_client import SupercolliderClient
 from soundmining_tools.modular.instrument import (
-    AudioInstrument,    
+    AudioInstrument,
     AddAction,
     NodeId,
 )
@@ -76,7 +76,7 @@ class SynthNoteV2:
 
     def mono_input(self) -> Self:
         self.input = self.synth_player.instruments.mono_audio_bus()
-        return self.push(self.input)  
+        return self.push(self.input)
 
     def stereo_input(self) -> Self:
         self.input = self.synth_player.instruments.stereo_audio_bus()
@@ -126,15 +126,34 @@ class SynthNoteV2:
             .add_action(AddAction.TAIL_ACTION)
             .node_id(self.node_id)
         )
-        return self.push(bank)        
+        return self.push(bank)
 
-    def sine(self, freq: AudioInstrument, amp: AudioInstrument) -> Self:
-        osc = (
-            self.synth_player.instruments.sine_osc(amp, freq)
+    def mono_grain_buf(
+        self,
+        sound: str,
+        grain_trigger_bus: AudioInstrument,
+        grain_duration_bus: AudioInstrument,
+        grain_rate_bus: AudioInstrument,
+        grain_pos_bus: AudioInstrument,
+    ) -> Self:
+        synth_player = self.synth_player
+        sound_play = synth_player.get_sound(sound)
+        grain = (
+            synth_player.instruments.mono_grain_buf(
+                sound_play.buf_num,
+                grain_trigger_bus,
+                grain_duration_bus,
+                grain_rate_bus,
+                grain_pos_bus,
+            )
             .add_action(AddAction.TAIL_ACTION)
             .node_id(self.node_id)
         )
-        return self.push(osc)        
+        return self.push(grain)
+
+    def sine(self, freq: AudioInstrument, amp: AudioInstrument) -> Self:
+        osc = self.synth_player.instruments.sine_osc(amp, freq).add_action(AddAction.TAIL_ACTION).node_id(self.node_id)
+        return self.push(osc)
 
     def triangle(self, freq: AudioInstrument, amp: AudioInstrument) -> Self:
         osc = (
@@ -145,11 +164,7 @@ class SynthNoteV2:
         return self.push(osc)
 
     def saw(self, freq: AudioInstrument, amp: AudioInstrument) -> Self:
-        osc = (
-            self.synth_player.instruments.saw_osc(amp, freq)
-            .add_action(AddAction.TAIL_ACTION)
-            .node_id(self.node_id)
-        )
+        osc = self.synth_player.instruments.saw_osc(amp, freq).add_action(AddAction.TAIL_ACTION).node_id(self.node_id)
         return self.push(osc)
 
     def pulse(self, freq: AudioInstrument, width: AudioInstrument, amp: AudioInstrument) -> Self:
@@ -161,26 +176,18 @@ class SynthNoteV2:
         return self.push(osc)
 
     def dust(self, freq: AudioInstrument, amp: AudioInstrument) -> Self:
-        dust = (
-            self.synth_player.instruments.dust_osc(amp, freq)
-            .add_action(AddAction.TAIL_ACTION)
-            .node_id(self.node_id)
-        )
+        dust = self.synth_player.instruments.dust_osc(amp, freq).add_action(AddAction.TAIL_ACTION).node_id(self.node_id)
         return self.push(dust)
 
     def white_noise(self, amp: AudioInstrument) -> Self:
         noise = (
-            self.synth_player.instruments.white_noise_osc(amp)
-            .add_action(AddAction.TAIL_ACTION)
-            .node_id(self.node_id)
+            self.synth_player.instruments.white_noise_osc(amp).add_action(AddAction.TAIL_ACTION).node_id(self.node_id)
         )
         return self.push(noise)
 
     def pink_noise(self, amp: AudioInstrument) -> Self:
         noise = (
-            self.synth_player.instruments.pink_noise_osc(amp)
-            .add_action(AddAction.TAIL_ACTION)
-            .node_id(self.node_id)
+            self.synth_player.instruments.pink_noise_osc(amp).add_action(AddAction.TAIL_ACTION).node_id(self.node_id)
         )
         return self.push(noise)
 
@@ -290,7 +297,7 @@ class SynthNoteV2:
             .add_action(AddAction.TAIL_ACTION)
             .node_id(self.node_id)
         )
-        return self.push(volume)        
+        return self.push(volume)
 
     def stereo_hall_reverb(
         self,
@@ -340,7 +347,7 @@ class SynthNoteV2:
             .add_action(AddAction.TAIL_ACTION)
             .node_id(self.node_id)
         )
-        return self.push(reverb)        
+        return self.push(reverb)
 
     def stereo_g_verb(
         self,

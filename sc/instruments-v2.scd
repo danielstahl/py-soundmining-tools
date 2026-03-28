@@ -53,6 +53,30 @@ SynthDef(\twoBlockControl, {
 	Out.ar(out, env);
 }).add.store('global', synthsDir);
 
+SynthDef(\twoBlockSineControl, {
+	arg dur = 1, levels = #[0, 0, 0], times = #[0, 0], out = 0;
+	var env;
+	env = EnvGen.ar(
+		Env.new(
+			levels: levels,
+			times: times,
+			curve: \sine).duration_(dur),
+		doneAction:2);
+	Out.ar(out, env);
+}).add.store('global', synthsDir);
+
+SynthDef(\twoBlockExpControl, {
+	arg dur = 1, levels = #[0, 0, 0], times = #[0, 0], out = 0;
+	var env;
+	env = EnvGen.ar(
+		Env.new(
+			levels: levels,
+			times: times,
+			curve: \exp).duration_(dur),
+		doneAction:2);
+	Out.ar(out, env);
+}).add.store('global', synthsDir);
+
 SynthDef(\threeBlockControl, {
 	arg dur = 1, levels = #[0, 0, 0, 0], times = #[0, 0, 0], curves = #[0, 0, 0], out = 0;
 	var env;
@@ -65,6 +89,30 @@ SynthDef(\threeBlockControl, {
 	Out.ar(out, env);
 }).add.store('global', synthsDir);
 
+SynthDef(\threeBlockSineControl, {
+	arg dur = 1, levels = #[0, 0, 0, 0], times = #[0, 0, 0], out = 0;
+	var env;
+	env = EnvGen.ar(
+		Env.new(
+			levels: levels,
+			times: times,
+			curve: \sine).duration_(dur),
+		doneAction:2);
+	Out.ar(out, env);
+}).add.store('global', synthsDir);
+
+SynthDef(\threeBlockExpControl, {
+	arg dur = 1, levels = #[0, 0, 0, 0], times = #[0, 0, 0], out = 0;
+	var env;
+	env = EnvGen.ar(
+		Env.new(
+			levels: levels,
+			times: times,
+			curve: \exp).duration_(dur),
+		doneAction:2);
+	Out.ar(out, env);
+}).add.store('global', synthsDir);
+
 SynthDef(\fourBlockControl, {
 	arg dur = 1, levels = #[0, 0, 0, 0, 0], times = #[0, 0, 0, 0], curves = #[0, 0, 0, 0], out = 0;
 	var env;
@@ -73,6 +121,30 @@ SynthDef(\fourBlockControl, {
 			levels: levels,
 			times: times,
 			curve: curves).duration_(dur),
+		doneAction:2);
+	Out.ar(out, env);
+}).add.store('global', synthsDir);
+
+SynthDef(\fourBlockSineControl, {
+	arg dur = 1, levels = #[0, 0, 0, 0, 0], times = #[0, 0, 0, 0], out = 0;
+	var env;
+	env = EnvGen.ar(
+		Env.new(
+			levels: levels,
+			times: times,
+			curve: \sine).duration_(dur),
+		doneAction:2);
+	Out.ar(out, env);
+}).add.store('global', synthsDir);
+
+SynthDef(\fourBlockExpControl, {
+	arg dur = 1, levels = #[0, 0, 0, 0, 0], times = #[0, 0, 0, 0], out = 0;
+	var env;
+	env = EnvGen.ar(
+		Env.new(
+			levels: levels,
+			times: times,
+			curve: \exp).duration_(dur),
 		doneAction:2);
 	Out.ar(out, env);
 }).add.store('global', synthsDir);
@@ -164,6 +236,25 @@ SynthDef(\dustOsc, {
 	Out.ar(out, sig);
 }).add.store('global', synthsDir);
 
+SynthDef(\lfNoiseOsc, {
+	arg dur = 1, freqBus = 0, ampBus = 0, lowValue = 0, highValue = 1, out = 0;
+	var sig, amp, freq;
+	Line.kr(dur:dur, doneAction:2);
+	amp = In.ar(ampBus, 1);
+	freq = In.ar(freqBus, 1);
+	sig = LFNoise1.ar(freq, mul:amp).range(lowValue, highValue);
+	Out.ar(out, sig);
+}).add.store('global', synthsDir);
+
+SynthDef(\impulseOsc, {
+	arg dur = 1, freqBus = 0, ampBus = 0, out = 0;
+	var sig, amp, freq;
+	Line.kr(dur:dur, doneAction:2);
+	amp = In.ar(ampBus, 1);
+	freq = In.ar(freqBus, 1);
+	sig = Impulse.ar(freq, mul:amp);
+	Out.ar(out, sig);
+}).add.store('global', synthsDir);
 
 /*
 * Deterministic signals.
@@ -329,7 +420,7 @@ SynthDef(\monoBandRejectFilter, {
 	Line.kr(dur:dur, doneAction:2);
 	input = In.ar(in, 1);
 	freq = In.ar(freqBus, 1);
-	rq = In.kr(rqBus, 1);
+	rq = In.ar(rqBus, 1);
 	sig = BRF.ar(input, freq, rq);
 	Out.ar(out, sig);
 }).add.store('global', synthsDir);
@@ -370,6 +461,31 @@ SynthDef(\bankOfOsc, {
 	sig = Klang.ar(`[freqs, amps, phases ]);
 	Out.ar(out, sig);
 }).add.store('global', synthsDir );
+
+/*
+* Grains
+*/
+
+SynthDef(\monoGrainBuf, {
+	arg dur = 1, soundbuf = 0, grainTriggerBus = 0, grainDurationBus = 0, grainRateBus = 0, grainPosBus = 0, out = 0;
+	var grainTrigger, grainDuration, grainRate, grainPos, sig;
+	Line.kr(dur:dur, doneAction:2);
+	grainTrigger = In.ar(grainTriggerBus, 1);
+	grainDuration = In.ar(grainDurationBus, 1);
+	grainRate = In.ar(grainRateBus, 1);
+	grainPos = In.ar(grainPosBus, 1);
+	sig = GrainBuf.ar(
+		numChannels: 1,
+		trigger: grainTrigger,
+		dur: grainDuration,
+		sndbuf: soundbuf,
+		rate: grainRate,
+		pos: grainPos,
+		interp: 2,
+		pan: 0,
+		envbufnum: -1);
+	Out.ar(out, sig);
+}).add.store('global', synthsDir);
 
 /*
 * Pan
